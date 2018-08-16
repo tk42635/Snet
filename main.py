@@ -22,7 +22,7 @@ params = {
     'n_clusters': 48,
     'affinity': 'siamese',
     'n_nbrs': 3,
-    'scale_nbrs': 2,
+    'scale_nbr': 2,
     'siam_k': 2,
     'siam_ne': 100,
     'spec_ne': 100,

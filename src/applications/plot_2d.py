@@ -11,7 +11,7 @@ def process(x_spectralnet, y_spectralnet, data, params):
     x = np.concatenate([x_train, x_val, x_test], axis=0)
     y = np.concatenate([y_train, y_val, y_test], axis=0)
 
-    # PERFORM SPECTRAL CLUSTERING ON DATA
+    # PERFORM SPECTRAL CLUSTERING ON DATA  v
 
     # get eigenvalues and eigenvectors
     scale = get_scale(x, params['batch_size'], params['scale_nbr'])
