@@ -190,6 +190,7 @@ def create_pairs_from_unlabeled_data(x1, x2=None, y=None, p=None, k=5, tot_pairs
         else:
             x1_flat = x1[:n]
 
+            print('next')
         if use_approx:
             ann = AnnoyIndex(x1_flat.shape[1], metric='euclidean')
             for i, x_ in enumerate(x1_flat):
@@ -200,8 +201,10 @@ def create_pairs_from_unlabeled_data(x1, x2=None, y=None, p=None, k=5, tot_pairs
                 nn_i = ann.get_nns_by_item(i, k+1, include_distances=False)
                 Idx[i,:] = np.array(nn_i)
         else:
-            nbrs = NearestNeighbors(n_neighbors=k+1).fit(x1_flat)
+            print('start paralleling')
+            nbrs = NearestNeighbors(n_neighbors=k+1, n_jobs=-1).fit(x1_flat)
             _, Idx = nbrs.kneighbors(x1_flat)
+            print('computation comleted!')
 
     # for each row, remove the element itself from its list of neighbors
     # (we don't care that each point is its own closest neighbor)

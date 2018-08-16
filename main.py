@@ -12,6 +12,7 @@ import loaddata
 import numpy as np
 import operator  
 from itertools import chain
+import argparse
 
 
 # define hyperparameters
@@ -47,9 +48,15 @@ params = {
     }
     
 # load dataset
-data_dir = '/home/zty/lyx/SpectralNet/data/'
-breakfast_data = loaddata.breakfast_dataset(data_dir)
+parser = argparse.ArgumentParser()
+parser.add_argument('dset', choices = ['less', 'larger'], default='larger')
+args = parser.parse_args()
+if args.dset == 'larger':        
+    ata_dir = '/home/zty/lyx/SpectralNet/data/'        
+else:
+    data_dir = '/home/zty/lyx/SpectralNet/data2/'
 
+breakfast_data = loaddata.breakfast_dataset(data_dir)
 splits=['s1', 's2', 's3', 's4']
 for split in splits:
             print('Start:', split)
