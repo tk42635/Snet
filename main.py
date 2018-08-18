@@ -12,7 +12,15 @@ import loaddata
 import numpy as np
 import operator  
 from itertools import chain
+import random
 import argparse
+import math
+import numba
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import OneHotEncoder
+
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 
 # define hyperparameters
@@ -20,11 +28,11 @@ params = {
     'dset': 'breakfast',
     'val_set_fraction': 0.1,
     'siam_batch_size': 128,
-    'n_clusters': 48,
+    'n_clusters': 5,
     'affinity': 'siamese',
-    'n_nbrs': 3,
-    'scale_nbr': 2,
-    'siam_k': 2,
+    'n_nbrs': 20,
+    'scale_nbr': 5,
+    'siam_k': 20,
     'siam_ne': 100,
     'spec_ne': 100,
     'siam_lr': 1e-3,
@@ -37,22 +45,49 @@ params = {
     'siam_reg': None,
     'spec_reg': None,
     'siam_n': None,
-    'siamese_tot_pairs': 600000,
+    'siamese_tot_pairs': 6000000,
     'arch': [
-        {'type': 'relu', 'size': 1024},
         {'type': 'relu', 'size': 512},
         {'type': 'relu', 'size': 256},
-        {'type': 'relu', 'size': 48},
+        {'type': 'relu', 'size': 64},
+        {'type': 'relu', 'size': 5},
         ],
     'use_approx': False,
+    'generalization_metrics': True
     }
+
+
+def selection(index, y_train_new, x_train_new, y_train, x_train):
+    for i in index:
+        y_train_new=np.row_stack((y_train_new,y_train[i]))
+        x_train_new=np.row_stack((x_train_new,x_train[i]))
+    x_train_new=np.delete(x_train_new,0,0)
+    y_train_new=np.delete(y_train_new,0,0)
+    x_train=x_train_new
+    y_train=y_train_new
+
+    return x_train,y_train
+
+def onehot(values):
+    label_encoder = LabelEncoder()
+    integer_encoded = label_encoder.fit_transform(values)
+    onehot_encoder = OneHotEncoder(sparse=False)
+    integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
+    onehot_encoded = onehot_encoder.fit_transform(integer_encoded)
+    return onehot_encoded
+
+   
     
 # load dataset
 parser = argparse.ArgumentParser()
-parser.add_argument('dset', choices = ['less', 'larger'], default='larger')
+parser.add_argument('dset', default='larger', choices = ['less', 'larger'])
+parser.add_argument('affnity',  default='s', choices = ['s', 'full'])
+sample_rate=float(input('sample_rate='))
 args = parser.parse_args()
+if args.affnity == 'full':
+    params['affinity']={'full'}
 if args.dset == 'larger':        
-    ata_dir = '/home/zty/lyx/SpectralNet/data/'        
+    data_dir = '/home/zty/lyx/SpectralNet/data/'        
 else:
     data_dir = '/home/zty/lyx/SpectralNet/data2/'
 
@@ -70,10 +105,20 @@ for split in splits:
             x_train=np.array(list(chain(*x_train_tmp)))
             y_test=np.array(list(chain(*y_test_tmp)))
             x_test=np.array(list(chain(*x_test_tmp)))
+            
+            index=random.sample(range(x_train.shape[0]),math.floor(x_train.shape[0]*sample_rate))
+            
+            y_train_new = np.array([0])
+            x_train_new = np.zeros((1,64))
 
-            print('-------data profile-------',end='')
+            x_train, y_train = selection(index, y_train_new, x_train_new, y_train, x_train)
+           
+            y_train=onehot(y_train)
+            y_test=onehot(y_test)
+            
+            print('-------data profile-------\n')
             print('x_train=',x_train.shape,'y_train=',y_train.shape)
-
+          #  params['n_clusters']={int(y_train.shape[1])}
             new_dataset_data = (np.array(x_train), np.array(x_test), np.array(y_train), np.array(y_test))
 
             # preprocess dataset

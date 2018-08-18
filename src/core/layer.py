@@ -17,6 +17,7 @@ def orthonorm_op(x, epsilon=1e-7):
     returns:    a d x d matrix, ortho_weights, which orthogonalizes x by
                 right multiplication
     '''
+    print(x.shape)
     x_2 = K.dot(K.transpose(x), x)
     x_2 += K.eye(K.int_shape(x)[1])*epsilon
     L = tf.cholesky(x_2)
